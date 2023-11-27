@@ -8,7 +8,7 @@ import spinal.lib._
  * @param dataWidth Width of the bus in BYTES
  * @param idWidth Width of the ID field in bits
  * @param destWidth Width of the Destination field in bits
- * @param userWidth Width of the User field in bits
+ * @param userWidth Width of the User field in BYTES
  * @param useStrb Use byte strobe bits
  * @param useKeep Use byte keep bits
  * @param useLast Use last bit
@@ -36,7 +36,7 @@ object Axi4Stream {
     val keep = (config.useKeep) generate Bits(config.dataWidth bit)
     val last = (config.useLast) generate Bool()
     val dest = (config.useDest) generate UInt(config.destWidth bit)
-    val user = (config.useUser) generate Bits(config.userWidth*config.dataWidth bit)
+    val user = (config.useUser) generate Bits(8*config.userWidth bit)
 
     def isLast = if (this.last != null) this.last else False
 
@@ -65,8 +65,8 @@ object Axi4Stream {
             case (true, false) => B(this.user.bitsRange -> false)
             case (false, true) => LocatedPendingError(s"${that.user} can't drive $this because the corresponding sink signal does not exist")
             case (true, true) => {
-              val sourceSlices = that.user.subdivideIn(that.config.dataWidth slices)
-              val sinkSlices = this.user.subdivideIn(this.config.dataWidth slices)
+              val sourceSlices = that.user.subdivideIn(that.config.userWidth slices)
+              val sinkSlices = this.user.subdivideIn(this.config.userWidth slices)
               val sourceSlicesPad = sourceSlices.padTo(sinkSlices.length, null)
               sourceSlicesPad.zip(sinkSlices).foreach(pair => {
                 val (sourceSlice, sinkSlice) = pair
